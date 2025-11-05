@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         IMAGE_NAME = 'acfitness'
-        IMAGE_TAG = 'v1'
-        DOCKERHUB_USER = 'yourdockerhubusername'
+        DOCKERHUB_USER = 'preethi08042001'
     }
 
     stages {
@@ -27,9 +26,42 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Set Docker Tag') {
             steps {
-                bat "docker build -t %DOCKERHUB_USER%/%IMAGE_NAME%:%IMAGE_TAG% ."
+                script {
+                    // Try to get the latest Git tag
+                    def gitTag = bat(
+                        script: 'git describe --tags --abbrev=0',
+                        returnStatus: true
+                    )
+
+                    if (gitTag == 0) {
+                        // Git tag exists
+                        env.IMAGE_TAG = bat(
+                            script: 'git describe --tags --abbrev=0',
+                            returnStdout: true
+                        ).trim()
+                    } else {
+                        // No tag found, use 'latest'
+                        env.IMAGE_TAG = 'latest'
+                    }
+
+                    echo "Docker tag set to: ${env.IMAGE_TAG}"
+                }
+            }
+        }
+
+        stage('Build & Push Docker Image') {
+            steps {
+                script {
+                    bat "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
+
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
+                        bat "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                        bat "docker push %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
+                    }
+                }
             }
         }
 
