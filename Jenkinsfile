@@ -51,7 +51,7 @@ pipeline {
             steps {
                 script {
                     // Login, build, tag, and push in one block
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    withCredentials([usernamePassword(credentialsId: 'ed059747-9182-4b62-95ec-603c6b6ef10d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         // Docker login
                         bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
 
