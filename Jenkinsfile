@@ -2,10 +2,10 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = 'acfitness'
-        DOCKERHUB_USER = 'preethi08042001'
-        HTTP_PROXY = 'http://http.docker.internal:3128'
-        HTTPS_PROXY = 'http://http.docker.internal:3128'
+    IMAGE_NAME = 'acfitness'
+    DOCKERHUB_USER = 'preethi08042001'
+    HTTP_PROXY = 'http://172.25.176.1:3128'
+    HTTPS_PROXY = 'http://172.25.176.1:3128'
     }
 
     stages {
