@@ -4,8 +4,6 @@ pipeline {
     environment {
     IMAGE_NAME = 'acfitness'
     DOCKERHUB_USER = 'preethi08042001'
-    HTTP_PROXY = 'http://172.25.176.1:3128'
-    HTTPS_PROXY = 'http://172.25.176.1:3128'
     }
 
     stages {
@@ -58,12 +56,7 @@ pipeline {
             steps {
                 script {
                     // Build image with proxy environment
-                    bat """
-                        docker build \
-                        --build-arg HTTP_PROXY=${env.HTTP_PROXY} \
-                        --build-arg HTTPS_PROXY=${env.HTTPS_PROXY} \
-                        -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} .
-                    """
+                    bat "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
 
                     // Docker login using Jenkins credentials
                     withCredentials([usernamePassword(credentialsId: 'ed059747-9182-4b62-95ec-603c6b6ef10d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
