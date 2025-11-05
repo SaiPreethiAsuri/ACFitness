@@ -17,13 +17,13 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat '"C:\\Users\\saipr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe" -m pip install -r requirements.txt'
+                bat '"C:\\Users\\saipr\\AppData\\Local\\Programs\\Python\\Python314\python.exe" -m pip install -r requirements.txt'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
-                bat '"C:\\Users\\saipr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe" -m pytest tests/ --maxfail=1 --disable-warnings -q'
+                bat '"C:\\Users\\saipr\\AppData\\Local\\Programs\\Python\\Python314\\python.exe" -m pytest tests/ --maxfail=1 --disable-warnings -q'
             }
         }
 
