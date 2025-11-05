@@ -17,16 +17,18 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                bat 'pip install -r requirements.txt'
-            }
+                bat '"C:\\Users\\saipr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe" -m pip install -r requirements.txt'
+                }
+        }
+
         }
 
         stage('Run Unit Tests') {
             steps {
-                echo "Running tests..."
-                bat 'pytest tests/ --maxfail=1 --disable-warnings -q'
+                bat '"C:\\Users\\saipr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe" -m pytest tests/ --maxfail=1 --disable-warnings -q'
             }
         }
+
 
         stage('Build Docker Image') {
             steps {
