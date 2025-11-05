@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "flask-fitness-app"
         IMAGE_TAG = "v1"
+        DOCKERHUB_USER = "your_dockerhub_username"
     }
 
     stages {
@@ -16,36 +17,48 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'pip install -r requirements.txt'
+                bat 'pip install -r requirements.txt'
             }
         }
 
         stage('Run Unit Tests') {
             steps {
                 echo "Running tests..."
-                sh 'pytest tests/ --maxfail=1 --disable-warnings -q'
+                bat 'pytest tests/ --maxfail=1 --disable-warnings -q'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image locally..."
-                sh "docker build -t ${IMAGE_NAME}:${IMAGE_TAG} ."
+                echo "Building Docker image..."
+                bat "docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
+            }
+        }
+
+        stage('Push to DockerHub') {
+            steps {
+                echo "Pushing Docker image..."
+                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKERHUB_PASS')]) {
+                    bat """
+                        echo %DOCKERHUB_PASS% | docker login -u ${DOCKERHUB_USER} --password-stdin
+                        docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
+                    """
+                }
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
                 echo "Deploying to Kubernetes..."
-                sh 'kubectl apply -f k8s/deployment.yaml'
-                sh 'kubectl apply -f k8s/service.yaml'
+                bat 'kubectl apply -f k8s\\deployment.yaml'
+                bat 'kubectl apply -f k8s\\service.yaml'
             }
         }
     }
 
     post {
         success {
-            echo '✅ CI/CD pipeline executed successfully!'
+            echo '✅ Deployment successful!'
         }
         failure {
             echo '❌ Pipeline failed!'
