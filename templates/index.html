@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ACEestFitness and Gym</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>ACEestFitness and Gym</h1>
+
+    <form method="POST" action="/add_workout">
+      <label for="workout">Workout:</label>
+      <input type="text" id="workout" name="workout" required>
+
+      <label for="duration">Duration (minutes):</label>
+      <input type="text" id="duration" name="duration" required>
+
+      <input type="submit" value="Add Workout">
+    </form>
+
+    {% if message %}
+      <p class="message success">{{ message }}</p>
+    {% elif error %}
+      <p class="message error">{{ error }}</p>
+    {% endif %}
+
+    <h2>Logged Workouts</h2>
+    {% if workouts %}
+      <ul>
+        {% for entry in workouts %}
+          <li>{{ loop.index }}. {{ entry['workout'] }} - {{ entry['duration'] }} minutes</li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No workouts logged yet.</p>
+    {% endif %}
+  </div>
+</body>
+</html>
