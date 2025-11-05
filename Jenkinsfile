@@ -2,15 +2,15 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "flask-fitness-app"
-        IMAGE_TAG = "v1"
-        DOCKERHUB_USER = "your_dockerhub_username"
+        IMAGE_NAME = 'acfitness'
+        IMAGE_TAG = 'v1'
+        DOCKERHUB_USER = 'yourdockerhubusername'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo "Checking out code..."
+                echo 'Checking out code...'
                 checkout scm
             }
         }
@@ -18,9 +18,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 bat '"C:\\Users\\saipr\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe" -m pip install -r requirements.txt'
-                }
-        }
-
+            }
         }
 
         stage('Run Unit Tests') {
@@ -29,38 +27,22 @@ pipeline {
             }
         }
 
-
         stage('Build Docker Image') {
             steps {
-                echo "Building Docker image..."
-                bat "docker build -t ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG} ."
-            }
-        }
-
-        stage('Push to DockerHub') {
-            steps {
-                echo "Pushing Docker image..."
-                withCredentials([string(credentialsId: 'dockerhub-token', variable: 'DOCKERHUB_PASS')]) {
-                    bat """
-                        echo %DOCKERHUB_PASS% | docker login -u ${DOCKERHUB_USER} --password-stdin
-                        docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${IMAGE_TAG}
-                    """
-                }
+                bat "docker build -t %DOCKERHUB_USER%/%IMAGE_NAME%:%IMAGE_TAG% ."
             }
         }
 
         stage('Deploy to Kubernetes') {
             steps {
-                echo "Deploying to Kubernetes..."
-                bat 'kubectl apply -f k8s\\deployment.yaml'
-                bat 'kubectl apply -f k8s\\service.yaml'
+                echo 'Deploying application to Kubernetes...'
             }
         }
     }
 
     post {
         success {
-            echo '✅ Deployment successful!'
+            echo '✅ Pipeline completed successfully!'
         }
         failure {
             echo '❌ Pipeline failed!'
