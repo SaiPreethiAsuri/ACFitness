@@ -4,7 +4,8 @@ pipeline {
     environment {
         IMAGE_NAME = 'acfitness'
         DOCKERHUB_USER = 'preethi08042001'
-        IMAGE_TAG = 'latest'  // default, will be overridden if Git tag exists
+        HTTP_PROXY = 'http://http.docker.internal:3128'
+        HTTPS_PROXY = 'http://http.docker.internal:3128'
     }
 
     stages {
@@ -31,9 +32,12 @@ pipeline {
             steps {
                 script {
                     // Try to get the latest Git tag
-                    def gitTagStatus = bat(script: 'git describe --tags --abbrev=0', returnStatus: true)
+                    def gitTagResult = bat(
+                        script: 'git describe --tags --abbrev=0',
+                        returnStatus: true
+                    )
 
-                    if (gitTagStatus == 0) {
+                    if (gitTagResult == 0) {
                         env.IMAGE_TAG = bat(
                             script: 'git describe --tags --abbrev=0',
                             returnStdout: true
@@ -48,17 +52,22 @@ pipeline {
         }
 
         stage('Build & Push Docker Image') {
+            environment {
+                DOCKER_BUILDKIT = '1' // enable BuildKit
+            }
             steps {
                 script {
-                    // Login, build, tag, and push in one block
+                    // Build image with proxy environment
+                    bat """
+                        docker build \
+                        --build-arg HTTP_PROXY=${env.HTTP_PROXY} \
+                        --build-arg HTTPS_PROXY=${env.HTTPS_PROXY} \
+                        -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} .
+                    """
+
+                    // Docker login using Jenkins credentials
                     withCredentials([usernamePassword(credentialsId: 'ed059747-9182-4b62-95ec-603c6b6ef10d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                        // Docker login
-                        bat "echo %DOCKER_PASS% | docker login -u %DOCKER_USER% --password-stdin"
-
-                        // Build Docker image
-                        bat "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
-
-                        // Tag and push to Docker Hub
+                        bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                         bat "docker push %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
