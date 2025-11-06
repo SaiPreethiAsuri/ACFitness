@@ -67,10 +67,10 @@ pipeline {
                     echo "Deploying to local Minikube cluster..."
                     
                     // Update deployment.yaml image dynamically
-                    bat "powershell -Command \"(Get-Content deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content deployment.yaml\""
+                    bat "powershell -Command \"(Get-Content k8s\\deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content deployment.yaml\""
                     
                     // Apply deployment in Minikube
-                    bat "kubectl apply -f deployment.yaml"
+                    bat "kubectl apply -f k8s\\deployment.yaml"
                     
                     // Optional: expose service if not already exposed
                     bat "kubectl expose deployment acfitness --type=NodePort --name=acfitness-service || echo 'Service already exists'"
