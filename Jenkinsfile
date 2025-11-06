@@ -75,7 +75,7 @@ pipeline {
 
                     // Expose service (create only if not exists)
                     bat """
-                    kubectl get service acfitness-service || kubectl expose deployment acfitness --type=NodePort --name=acfitness-service
+                    kubectl get service acfitness-service || kubectl expose deployment acfitness-app --type=NodePort --name=acfitness-service --port=5000 --target-port=5000
                     """
 
                     // Show Minikube service URL
