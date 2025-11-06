@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-    IMAGE_NAME = 'acfitness'
-    DOCKERHUB_USER = 'preethi08042001'
+        IMAGE_NAME = 'acfitness'
+        DOCKERHUB_USER = 'preethi08042001'
     }
 
     stages {
@@ -29,17 +29,10 @@ pipeline {
         stage('Set Docker Tag') {
             steps {
                 script {
-                    // Try to get the latest Git tag
-                    def gitTagResult = bat(
-                        script: 'git describe --tags --abbrev=0',
-                        returnStatus: true
-                    )
+                    def gitTagResult = bat(script: 'git describe --tags --abbrev=0', returnStatus: true)
 
                     if (gitTagResult == 0) {
-                        env.IMAGE_TAG = bat(
-                            script: 'git describe --tags --abbrev=0',
-                            returnStdout: true
-                        ).trim()
+                        env.IMAGE_TAG = bat(script: 'git describe --tags --abbrev=0', returnStdout: true).trim()
                     } else {
                         env.IMAGE_TAG = 'latest'
                     }
@@ -51,14 +44,14 @@ pipeline {
 
         stage('Build & Push Docker Image') {
             environment {
-                DOCKER_BUILDKIT = '1' // enable BuildKit
+                DOCKER_BUILDKIT = '1'
             }
             steps {
                 script {
-                    // Build image with proxy environment
+                    // Build image
                     bat "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
 
-                    // Docker login using Jenkins credentials
+                    // Docker login & push
                     withCredentials([usernamePassword(credentialsId: 'ed059747-9182-4b62-95ec-603c6b6ef10d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
@@ -68,9 +61,23 @@ pipeline {
             }
         }
 
-        stage('Deploy to Kubernetes') {
+        stage('Deploy to Minikube') {
             steps {
-                echo 'Deploying application to Kubernetes...'
+                script {
+                    echo "Deploying to local Minikube cluster..."
+                    
+                    // Update deployment.yaml image dynamically
+                    bat "powershell -Command \"(Get-Content deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content deployment.yaml\""
+                    
+                    // Apply deployment in Minikube
+                    bat "kubectl apply -f deployment.yaml"
+                    
+                    // Optional: expose service if not already exposed
+                    bat "kubectl expose deployment acfitness --type=NodePort --name=acfitness-service || echo 'Service already exists'"
+                    
+                    // Get Minikube URL
+                    bat "minikube service acfitness-service --url"
+                }
             }
         }
     }
