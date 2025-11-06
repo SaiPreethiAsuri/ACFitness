@@ -27,14 +27,21 @@ pipeline {
         }
 
         // 🔍 SonarQube Static Code Analysis
-        stage('SonarQube Analysis') {
-            steps {
-                echo 'Running SonarQube code analysis...'
-                withSonarQubeEnv('sonarqube') {
-                    bat '"C:\\Users\\saipr\\sonar-scanner-7.3.0.5189-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.projectKey=acfitness -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000'
-                }
+       stage('SonarQube Analysis') {
+    steps {
+        withSonarQubeEnv('SonarQube') {
+            withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                bat """
+                "C:\\Users\\saipr\\sonar-scanner-7.3.0.5189-windows-x64\\bin\\sonar-scanner.bat" ^
+                -Dsonar.projectKey=acfitness ^
+                -Dsonar.sources=. ^
+                -Dsonar.host.url=http://localhost:9000 ^
+                -Dsonar.token=%SONAR_TOKEN%
+                """
             }
         }
+    }
+}
 
         stage('Set Docker Tag') {
             steps {
