@@ -29,7 +29,7 @@ pipeline {
         // 🔍 SonarQube Static Code Analysis
        stage('SonarQube Analysis') {
     steps {
-        withSonarQubeEnv('SonarQube') {
+        withSonarQubeEnv('sonarqube') {
             withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                 bat """
                 "C:\\Users\\saipr\\sonar-scanner-7.3.0.5189-windows-x64\\bin\\sonar-scanner.bat" ^
