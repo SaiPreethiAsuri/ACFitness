@@ -30,7 +30,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Running SonarQube code analysis...'
-                withSonarQubeEnv('SonarQube') {
+                withSonarQubeEnv('sonarqube') {
                     bat 'sonar-scanner -Dsonar.projectKey=acfitness -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000'
                 }
             }
