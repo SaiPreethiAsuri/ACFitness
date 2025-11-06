@@ -4,7 +4,6 @@ pipeline {
     environment {
         IMAGE_NAME = 'acfitness'
         DOCKERHUB_USER = 'preethi08042001'
-        KUBECONFIG = 'C:\\Users\\saipr\\.kube\\config' // Point to your Minikube kubeconfig
     }
 
     stages {
@@ -24,6 +23,16 @@ pipeline {
         stage('Run Unit Tests') {
             steps {
                 bat '"C:\\Users\\saipr\\AppData\\Local\\Programs\\Python\\Python314\\python.exe" -m pytest tests/ --maxfail=1 --disable-warnings -q'
+            }
+        }
+
+        // 🔍 SonarQube Static Code Analysis
+        stage('SonarQube Analysis') {
+            steps {
+                echo 'Running SonarQube code analysis...'
+                withSonarQubeEnv('SonarQube') {
+                    bat 'sonar-scanner -Dsonar.projectKey=acfitness -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000'
+                }
             }
         }
 
@@ -56,41 +65,6 @@ pipeline {
                         bat "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                         bat "docker push %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
                     }
-                }
-            }
-        }
-
-        stage('Deploy to Minikube') {
-            steps {
-                script {
-                    echo "Deploying to local Minikube cluster..."
-
-                    // Update deployment.yaml image dynamically
-                    bat """
-                    powershell -Command "(Get-Content k8s\\deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content k8s\\deployment.yaml"
-                    """
-
-                    // Apply deployment
-                    bat "kubectl apply -f k8s\\deployment.yaml"
-
-                    // Expose service (create only if not exists)
-                    bat """
-                    kubectl get service acfitness-service || kubectl expose deployment acfitness-app --type=NodePort --name=acfitness-service --port=5000 --target-port=5000
-                    """
-
-                    def nodePort = bat(
-                script: 'kubectl get service acfitness-service -o jsonpath="{.spec.ports[0].nodePort}"',
-                returnStdout: true
-            ).trim()
-
-            // Get Minikube IP
-            def minikubeIP = bat(
-                script: 'minikube ip',
-                returnStdout: true
-            ).trim()
-
-            // Construct and print full URL
-            echo "✅ Application URL: http://${minikubeIP}:${nodePort}"
                 }
             }
         }
