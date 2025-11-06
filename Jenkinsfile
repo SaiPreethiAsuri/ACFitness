@@ -78,8 +78,19 @@ pipeline {
                     kubectl get service acfitness-service || kubectl expose deployment acfitness-app --type=NodePort --name=acfitness-service --port=5000 --target-port=5000
                     """
 
-                    // Show Minikube service URL
-                    bat "minikube service acfitness-service --url"
+                    def nodePort = bat(
+                script: 'kubectl get service acfitness-service -o jsonpath="{.spec.ports[0].nodePort}"',
+                returnStdout: true
+            ).trim()
+
+            // Get Minikube IP
+            def minikubeIP = bat(
+                script: 'minikube ip',
+                returnStdout: true
+            ).trim()
+
+            // Construct and print full URL
+            echo "✅ Application URL: http://${minikubeIP}:${nodePort}"
                 }
             }
         }
