@@ -31,7 +31,7 @@ pipeline {
             steps {
                 echo 'Running SonarQube code analysis...'
                 withSonarQubeEnv('sonarqube') {
-                    bat 'sonar-scanner -Dsonar.projectKey=acfitness -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000'
+                    bat '"C:\\Users\\saipr\\sonar-scanner-7.3.0.5189-windows-x64\\bin\\sonar-scanner.bat" -Dsonar.projectKey=acfitness -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000'
                 }
             }
         }
