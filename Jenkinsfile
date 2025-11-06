@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = 'acfitness'
         DOCKERHUB_USER = 'preethi08042001'
+        KUBECONFIG = 'C:\\Users\\saipr\\.kube\\config' // Point to your Minikube kubeconfig
     }
 
     stages {
@@ -48,10 +49,8 @@ pipeline {
             }
             steps {
                 script {
-                    // Build image
                     bat "docker build -t ${env.IMAGE_NAME}:${env.IMAGE_TAG} ."
 
-                    // Docker login & push
                     withCredentials([usernamePassword(credentialsId: 'ed059747-9182-4b62-95ec-603c6b6ef10d', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker tag ${env.IMAGE_NAME}:${env.IMAGE_TAG} %DOCKER_USER%/${env.IMAGE_NAME}:${env.IMAGE_TAG}"
@@ -65,17 +64,21 @@ pipeline {
             steps {
                 script {
                     echo "Deploying to local Minikube cluster..."
-                    
+
                     // Update deployment.yaml image dynamically
-                    bat "powershell -Command \"(Get-Content k8s\\deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content deployment.yaml\""
-                    
-                    // Apply deployment in Minikube
+                    bat """
+                    powershell -Command "(Get-Content k8s\\deployment.yaml) -replace 'image: .*', 'image: ${env.DOCKERHUB_USER}/${env.IMAGE_NAME}:${env.IMAGE_TAG}' | Set-Content k8s\\deployment.yaml"
+                    """
+
+                    // Apply deployment
                     bat "kubectl apply -f k8s\\deployment.yaml"
-                    
-                    // Optional: expose service if not already exposed
-                    bat "kubectl expose deployment acfitness --type=NodePort --name=acfitness-service || echo 'Service already exists'"
-                    
-                    // Get Minikube URL
+
+                    // Expose service (create only if not exists)
+                    bat """
+                    kubectl get service acfitness-service || kubectl expose deployment acfitness --type=NodePort --name=acfitness-service
+                    """
+
+                    // Show Minikube service URL
                     bat "minikube service acfitness-service --url"
                 }
             }
