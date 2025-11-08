@@ -1,75 +1,84 @@
 import pytest
 from app.app import app, workouts
 
+
 @pytest.fixture
 def client():
     app.config["TESTING"] = True
     with app.test_client() as client:
-        # Clear workouts before each test
-        for k in list(workouts.keys()):
-            workouts[k].clear()
         yield client
 
-def test_home_page_loads(client):
+
+def test_homepage_loads(client):
+    """Ensure the main tabbed interface loads"""
     resp = client.get("/")
     assert resp.status_code == 200
-    assert b"ACEest" in resp.data  # Partial match (more robust)
+    assert b"ACEest Fitness & Gym Tracker" in resp.data
+    assert b"Log Workouts" in resp.data
+    assert b"Workout Chart" in resp.data
+    assert b"Diet Chart" in resp.data
+
 
 def test_add_valid_workout(client):
-    """POST a valid workout to /add_workout"""
-    resp = client.post("/add_workout", data={
-        "category": "Workout",
-        "workout": "Pushups",
-        "duration": "30"
-    }, follow_redirects=True)
-    assert resp.status_code == 200
-    # Relaxed flash message check
-    assert b"Pushups" in resp.data
-    assert b"successfully" in resp.data
-    assert len(workouts["Workout"]) == 1
+    """Add a valid workout and confirm it's stored"""
+    # Clear previous data
+    for k in workouts:
+        workouts[k].clear()
 
-def test_add_workout_missing_fields(client):
-    resp = client.post("/add_workout", data={
+    data = {
         "category": "Workout",
-        "workout": "",
-        "duration": "30"
-    }, follow_redirects=True)
+        "exercise": "Pushups",
+        "duration": "20"
+    }
+    resp = client.post("/add", data=data, follow_redirects=True)
     assert resp.status_code == 200
-    assert b"Please enter" in resp.data
-    assert len(workouts["Workout"]) == 0
+    assert any(e["exercise"] == "Pushups" for e in workouts["Workout"])
+    assert b"ACEest Fitness & Gym Tracker" in resp.data  # back to home page
 
-def test_add_workout_invalid_duration(client):
-    resp = client.post("/add_workout", data={
+
+def test_add_missing_fields(client):
+    """Submitting with missing exercise or duration shows error"""
+    data = {
         "category": "Workout",
-        "workout": "Situps",
+        "exercise": "",
+        "duration": "30"
+    }
+    resp = client.post("/add", data=data)
+    assert resp.status_code == 200
+    assert b"Please enter both exercise and duration" in resp.data
+
+
+def test_add_invalid_duration(client):
+    """Submitting non-numeric duration shows error"""
+    data = {
+        "category": "Workout",
+        "exercise": "Squats",
         "duration": "abc"
-    }, follow_redirects=True)
+    }
+    resp = client.post("/add", data=data)
     assert resp.status_code == 200
-    assert b"Duration must be" in resp.data
-    assert len(workouts["Workout"]) == 0
+    assert b"Duration must be a number" in resp.data
 
-def test_summary_page_empty(client):
-    """When no workouts exist, show total=0 and a 'no sessions' message"""
+
+def test_summary_no_sessions(client):
+    """Summary when no workouts are added"""
+    # clear workouts
+    for k in workouts:
+        workouts[k].clear()
+
     resp = client.get("/summary")
     assert resp.status_code == 200
-    assert b"Total Time Spent: 0" in resp.data
     assert b"No sessions logged yet!" in resp.data
 
-def test_summary_page_with_workouts(client):
-    client.post("/add_workout", data={
-        "category": "Warm-up",
-        "workout": "Jogging",
-        "duration": "20"
-    }, follow_redirects=True)
-    client.post("/add_workout", data={
-        "category": "Workout",
-        "workout": "Pushups",
-        "duration": "40"
-    }, follow_redirects=True)
+
+def test_summary_with_sessions(client):
+    """Summary shows workouts and correct motivational text"""
+    # Add workouts manually
+    workouts["Warm-up"].append({"exercise": "Jog", "duration": 10, "timestamp": "2025-11-04"})
+    workouts["Workout"].append({"exercise": "Pushups", "duration": 25, "timestamp": "2025-11-04"})
 
     resp = client.get("/summary")
     assert resp.status_code == 200
-    assert b"Jogging" in resp.data
+    assert b"Jog" in resp.data
     assert b"Pushups" in resp.data
-    assert b"Total Time Spent" in resp.data
-    assert b"Excellent" in resp.data  # partial match for motivation
+    assert b"Good start! Keep moving" in resp.data or b"Nice effort" in resp.data

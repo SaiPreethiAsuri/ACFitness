@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Diet Chart</title>
+</head>
+<body>
+  <h2>🥗 Best Diet Chart for Fitness Goals</h2>
+  {% for goal, foods in diet_plans.items() %}
+    <h3>{{ goal }}</h3>
+    <ul>
+      {% for food in foods %}
+        <li>{{ food }}</li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+  <a href="/">Back to Home</a>
+</body>
+</html>
