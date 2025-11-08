@@ -79,4 +79,43 @@ Since Jenkins does not have access to the local Minikube cluster, **CD is intent
 ---
 
 # ✅ **Pipeline Workflow**
+Developer Push → GitHub
+↓
+Jenkins CI Pipeline
+↓ Pytest (Automated Tests)
+↓ SonarQube (Quality Gate)
+↓ Docker Build
+↓ Docker Tag
+↓ Docker Push → Docker Hub
+↓
+Local Kubernetes Deployment on Minikube (Manual/Shell Script)
+
+**Deployment Strategies Implemented**
+
+| Strategy | Status |
+|---------|--------|
+| ✅ Blue-Green Deployment | Implemented |
+| ✅ Canary Deployment | Implemented |
+| ✅ Rolling Update | Implemented |
+| ✅ Shadow Deployment | Implemented |
+| ✅ Stable Testing | Implemented |
+
+Each strategy is configured in separate YAML files.
+
+---
+
+# ✅ **SonarQube Integration**
+
+- Quality gate enforced in Jenkins
+- Static code analysis triggered on every commit
+- Report available in Jenkins after pipeline run
+
+---
+
+# ✅ **Docker Hub Images**
+
+All application versions are pushed to Docker Hub following tags such as:
+
+- `v1.0`, `v1.1`, `v1.2`, ... `v1.3`
+- `latest`
 
