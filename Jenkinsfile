@@ -42,14 +42,12 @@ pipeline {
         }
     }
 }
-
-      stage('Set Docker Tag') {
+stage('Set Docker Tag') {
     steps {
         script {
 
-            // Use a SINGLE-LINE BAT for compatibility with Jenkins Windows agents
             def result = bat(
-                script: '@echo off && for /f "delims=" %i in (\'git describe --tags --abbrev=0 2^>nul\') do @echo %i',
+                script: 'powershell -Command "(git describe --tags --abbrev=0 2>$null)"',
                 returnStdout: true
             ).trim()
 
@@ -65,6 +63,7 @@ pipeline {
         }
     }
 }
+
 
 
 
