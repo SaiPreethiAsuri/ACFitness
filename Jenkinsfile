@@ -48,7 +48,7 @@ stage('Set Docker Tag') {
             bat 'git fetch --all --tags'
 
             def result = bat(
-                script: 'git tag --sort=-creatordate | head -n 1',
+                script: 'git tag --sort=-creatordate | Select-Object -First 1',
                 returnStdout: true
             ).trim()
 
