@@ -45,38 +45,20 @@ pipeline {
 stage('Set Docker Tag') {
     steps {
         script {
-
-            bat 'git fetch --all --tags'
-
-            // Run tag fetch in PowerShell
-            def raw = bat(
-                script: 'powershell -NoProfile -Command "git tag --sort=-creatordate | Select-Object -Last 1"',
+            def TAG = powershell(
+                script: '''
+                    git fetch --all --tags
+                    $tag = git tag --sort=-version:refname | Select-Object -First 1
+                    Write-Output $tag
+                ''',
                 returnStdout: true
-            )
+            ).trim()
 
-            // CLEAN: keep only the last non-empty line
-            def clean = raw.readLines()
-                           .findAll { it.trim() }          // remove empty lines
-                           .last()                         // take the last clean line
-                           .trim()                         // trim spaces
-
-            // Ensure valid fallback
-            if (!clean) clean = "latest"
-
-            env.IMAGE_TAG = clean
-            echo "✅ FINAL TAG: '${env.IMAGE_TAG}'"
+            env.IMAGE_TAG = TAG ?: "latest"
+            echo "✅ Final Tag Selected: ${env.IMAGE_TAG}"
         }
     }
 }
-
-
-
-
-
-
-
-
-
         stage('Build & Push Docker Image') {
             environment {
                 DOCKER_BUILDKIT = '1'
