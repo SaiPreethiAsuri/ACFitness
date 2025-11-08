@@ -1,33 +1,21 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Workout Summary</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <div class="container">
-    <h1>🏋️ Session Summary</h1>
+{% extends "layout.html" %}
+{% block content %}
+<h2>Workout Summary</h2>
 
-    {% for category, sessions in workouts.items() %}
-      <h2 class="category">{{ category }}</h2>
-      {% if sessions %}
-        <ul>
-          {% for entry in sessions %}
-            <li>{{ loop.index }}. {{ entry.exercise }} - {{ entry.duration }} min <small>({{ entry.timestamp }})</small></li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="empty">No sessions recorded.</p>
-      {% endif %}
+{% if total_time == 0 %}
+<p>No sessions logged yet!</p>
+{% else %}
+{% for cat, sessions in workouts.items() %}
+<h3>{{ cat }}</h3>
+<ul>
+    {% for entry in sessions %}
+        <li>{{ entry.exercise }} - {{ entry.duration }} min ({{ entry.timestamp }})</li>
     {% endfor %}
+</ul>
+{% endfor %}
+<p><strong>Total Time:</strong> {{ total_time }} minutes</p>
+<p class="motivation">{{ motivation }}</p>
 
-    <h3>Total Time Spent: {{ total_time }} minutes</h3>
-    <p class="motivation">{{ motivation }}</p>
-
-    <form action="{{ url_for('home') }}">
-      <button type="submit">Add More Workouts</button>
-    </form>
-  </div>
-</body>
-</html>
+<img src="{{ url_for('static', filename='charts/progress.png') }}" alt="Progress Chart">
+{% endif %}
+{% endblock %}

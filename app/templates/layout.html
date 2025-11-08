@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ACEest Fitness Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>🏋️ ACEest Fitness & Gym Tracker</h1>
+        <nav>
+            <a href="{{ url_for('home') }}">🏋️ Log Workouts</a>
+            <a href="{{ url_for('summary') }}">📊 Summary</a>
+            <a href="{{ url_for('diet_chart') }}">🥗 Diet Chart</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

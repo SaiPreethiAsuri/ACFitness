@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Diet Chart</h2>
+
+{% for goal, foods in diet_plans.items() %}
+<h3>{{ goal }} Plan</h3>
+<ul>
+    {% for food in foods %}
+        <li>{{ food }}</li>
+    {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

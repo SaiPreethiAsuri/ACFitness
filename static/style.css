@@ -1,65 +1,44 @@
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f8f9fa;
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    margin: 0;
+    padding: 0;
 }
 
-.container {
-  width: 500px;
-  margin: 40px auto;
-  background: #fff;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+header {
+    background-color: #007bff;
+    color: white;
+    padding: 15px;
+    text-align: center;
 }
 
-h1 {
-  text-align: center;
-  color: #333;
-  margin-bottom: 20px;
+nav a {
+    color: white;
+    text-decoration: none;
+    margin: 0 15px;
 }
 
-label {
-  display: block;
-  margin-top: 10px;
-  font-weight: bold;
+nav a:hover {
+    text-decoration: underline;
 }
 
-input[type="text"], select {
-  width: 100%;
-  padding: 8px;
-  margin-top: 5px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+main {
+    padding: 20px;
 }
 
-input[type="submit"], button {
-  width: 100%;
-  margin-top: 15px;
-  padding: 10px;
-  background-color: #007bff;
-  border: none;
-  color: white;
-  font-weight: bold;
-  border-radius: 5px;
-  cursor: pointer;
+button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
 }
 
-button.summary-btn {
-  background-color: #28a745;
+.error {
+    color: red;
 }
 
-button:hover, input[type="submit"]:hover {
-  background-color: #0056b3;
+.motivation {
+    font-weight: bold;
+    color: #28a745;
 }
-
-.message {
-  margin-top: 10px;
-  text-align: center;
-  font-weight: bold;
-}
-
-.success { color: green; }
-.error { color: red; }
-.category { color: #007bff; }
-.empty { color: #888; font-style: italic; }
-.motivation { text-align: center; font-style: italic; color: #555; margin-top: 20px; }
