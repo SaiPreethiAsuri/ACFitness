@@ -1,25 +1,43 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block content %}
-<h2>Log Your Workout</h2>
+<h2>🏋️ Log Your Workouts</h2>
 
 {% if error %}
-<p class="error">{{ error }}</p>
+<p style="color:red;">{{ error }}</p>
 {% endif %}
 
 <form method="POST" action="{{ url_for('add_workout') }}">
-    <label>Category:</label>
-    <select name="category">
-        {% for cat in workouts.keys() %}
-            <option value="{{ cat }}">{{ cat }}</option>
-        {% endfor %}
-    </select><br><br>
+  <label>Category:</label>
+  <select name="category">
+    <option value="Warm-up">Warm-up</option>
+    <option value="Workout">Workout</option>
+    <option value="Cool-down">Cool-down</option>
+  </select>
 
-    <label>Exercise:</label>
-    <input type="text" name="exercise" placeholder="e.g. Pushups"><br><br>
+  <label>Exercise:</label>
+  <input type="text" name="exercise" required>
 
-    <label>Duration (min):</label>
-    <input type="text" name="duration" placeholder="e.g. 20"><br><br>
+  <label>Duration (minutes):</label>
+  <input type="number" name="duration" min="1" required>
 
-    <button type="submit">Add Session</button>
+  <button type="submit">✅ Add Session</button>
 </form>
+
+<hr>
+
+<h3>Recent Logs</h3>
+{% for category, sessions in workouts.items() %}
+<div class="summary-card">
+  <div class="category-title">{{ category }}</div>
+  {% if sessions %}
+    <ul>
+      {% for entry in sessions %}
+        <li>{{ entry.exercise }} — {{ entry.duration }} min ({{ entry.timestamp.split(' ')[0] }})</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No sessions yet in this category.</p>
+  {% endif %}
+</div>
+{% endfor %}
 {% endblock %}

@@ -1,44 +1,73 @@
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
-    margin: 0;
-    padding: 0;
+  font-family: 'Poppins', sans-serif;
+  background: #f8f9fa;
+  margin: 0;
+  padding: 0;
 }
 
 header {
-    background-color: #007bff;
-    color: white;
-    padding: 15px;
-    text-align: center;
+  background: #007bff;
+  color: white;
+  text-align: center;
+  padding: 20px;
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+nav {
+  background: #343a40;
+  text-align: center;
+  padding: 10px 0;
 }
 
 nav a {
-    color: white;
-    text-decoration: none;
-    margin: 0 15px;
+  color: white;
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: bold;
 }
 
 nav a:hover {
-    text-decoration: underline;
+  color: #ffc107;
 }
 
 main {
-    padding: 20px;
+  padding: 20px;
 }
 
-button {
-    background-color: #28a745;
-    color: white;
-    border: none;
-    padding: 8px 12px;
-    cursor: pointer;
+.summary-card {
+  background: white;
+  padding: 15px;
+  margin: 10px 0;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
 
-.error {
-    color: red;
+.category-title {
+  font-size: 1.2em;
+  font-weight: bold;
+  color: #007bff;
+  margin-bottom: 5px;
+}
+
+footer {
+  text-align: center;
+  background: #007bff;
+  color: white;
+  padding: 10px;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
 }
 
 .motivation {
-    font-weight: bold;
-    color: #28a745;
+  text-align: center;
+  color: #dc3545;
+  font-weight: bold;
+  margin-top: 15px;
+}
+
+.chart-container {
+  text-align: center;
+  margin-top: 20px;
 }

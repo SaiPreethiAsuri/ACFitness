@@ -1,24 +1,19 @@
 from flask import Flask, render_template, request, redirect, url_for
 from datetime import datetime
-import os
-
-# -------------------------------
-# Safe Matplotlib Import
-# -------------------------------
-MATPLOTLIB_AVAILABLE = False
-plt = None
-
 try:
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    MATPLOTLIB_AVAILABLE = True
 except Exception:
-    pass
-
+    matplotlib = None
+    plt = None
 # -------------------------------
 # Flask App Setup
 # -------------------------------
+import os
+import io
+import base64
+
 app = Flask(__name__)
 
 # Store workouts
@@ -28,14 +23,14 @@ workouts = {"Warm-up": [], "Workout": [], "Cool-down": []}
 CHART_DIR = "static/charts"
 os.makedirs(CHART_DIR, exist_ok=True)
 
-
 @app.route("/")
 def home():
+    """Landing page with all tabs"""
     return render_template("index.html", workouts=workouts)
-
 
 @app.route("/add", methods=["POST"])
 def add_workout():
+    """Add a workout session"""
     category = request.form.get("category")
     exercise = request.form.get("exercise", "").strip()
     duration_str = request.form.get("duration", "").strip()
@@ -46,8 +41,10 @@ def add_workout():
 
     try:
         duration = int(duration_str)
+        if duration <= 0:
+            raise ValueError
     except ValueError:
-        error = "Duration must be a number."
+        error = "Duration must be a positive number."
         return render_template("index.html", workouts=workouts, error=error)
 
     entry = {
@@ -57,11 +54,9 @@ def add_workout():
     }
     workouts[category].append(entry)
 
-    # Refresh charts
     generate_progress_chart()
 
-    return redirect(url_for("summary"))
-
+    return redirect(url_for("progress"))
 
 @app.route("/summary")
 def summary():
@@ -69,59 +64,97 @@ def summary():
 
     if total_time == 0:
         return render_template("summary.html", workouts=workouts, total_time=0,
-                               motivation="No sessions logged yet!")
+                               motivation="No sessions logged yet!", plot_url=None)
 
+    # Motivational message
     if total_time < 30:
-        motivation = "Good start! Keep moving 💪"
+        motivation = "Good start! Keep moving"
     elif total_time < 60:
-        motivation = "Nice effort! You're building consistency 🔥"
+        motivation = "Nice effort! You are building consistency"
     else:
-        motivation = "Excellent dedication! Keep up the great work 🏆"
+        motivation = "Excellent dedication! Keep up the great work"
 
-    return render_template("summary.html", workouts=workouts, total_time=total_time, motivation=motivation)
+    # ✅ If matplotlib is NOT installed, skip chart creation
+    if plt is None:
+        return render_template(
+            "summary.html",
+            workouts=workouts,
+            total_time=total_time,
+            motivation=motivation,
+            plot_url=None
+        )
+
+    # ✅ Otherwise, generate pie chart
+    labels = list(workouts.keys())
+    times = [sum(entry["duration"] for entry in sessions) for sessions in workouts.values()]
+
+    fig, ax = plt.subplots(figsize=(4, 4))
+    ax.pie(times, labels=labels, autopct='%1.1f%%', startangle=90)
+    ax.axis('equal')
+
+    # Convert chart to base64
+    import io, base64
+    img = io.BytesIO()
+    plt.savefig(img, format='png', bbox_inches='tight')
+    img.seek(0)
+    plot_url = base64.b64encode(img.getvalue()).decode()
+    plt.close()
+
+    return render_template(
+        "summary.html",
+        workouts=workouts,
+        total_time=total_time,
+        motivation=motivation,
+        plot_url=plot_url
+    )
+
 
 
 @app.route("/diet")
 def diet_chart():
+    """Diet guide page"""
     diet_plans = {
-        "Weight Loss": ["Oatmeal with Fruits", "Grilled Chicken Salad", "Vegetable Soup", "Brown Rice & Veggies"],
-        "Muscle Gain": ["Egg Omelet", "Chicken Breast", "Quinoa & Beans", "Protein Shake", "Greek Yogurt with Nuts"],
-        "Endurance": ["Banana & Peanut Butter", "Whole Grain Pasta", "Sweet Potatoes", "Salmon & Avocado", "Trail Mix"]
+        "Weight Loss": ["Oatmeal with Berries", "Grilled Chicken Salad", "Vegetable Soup with Lentils"],
+        "Muscle Gain": ["3 Egg Omelet with Spinach", "Chicken Breast, Quinoa, Veggies", "Protein Shake & Yogurt"],
+        "Endurance": ["Banana & Peanut Butter", "Whole Grain Pasta", "Salmon & Avocado Salad"]
     }
     return render_template("diet.html", diet_plans=diet_plans)
 
+@app.route("/progress")
+def progress():
+    """Progress chart page"""
+    generate_progress_chart()
+    total_time = sum(entry["duration"] for sessions in workouts.values() for entry in sessions)
+    return render_template("progress.html", total_time=total_time)
 
 def generate_progress_chart():
-    # ✅ skip processing if matplotlib is unavailable
-    if not MATPLOTLIB_AVAILABLE:
-        chart_path = os.path.join(CHART_DIR, "progress.png")
-        if not os.path.exists(chart_path):
-            with open(chart_path, "wb") as f:
-                f.write(b"")  # dummy empty file
-        return
+    if plt is None:
+        return  # Skip charting safely
 
-    totals = {cat: sum(entry["duration"] for entry in sessions) for cat, sessions in workouts.items()}
+    totals = {cat: sum(entry['duration'] for entry in sessions) for cat, sessions in workouts.items()}
+
     categories = list(totals.keys())
     values = list(totals.values())
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(8, 4))
+    categories_nonzero = [cat for cat, val in zip(categories, values) if val > 0]
+    values_nonzero = [val for val in values if val > 0]
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+    fig.subplots_adjust(wspace=0.4)
 
     ax1.bar(categories, values, color=["#007bff", "#28a745", "#ffc107"])
-    ax1.set_title("Time Spent per Category")
-    ax1.set_ylabel("Minutes")
+    ax1.set_title("⏱ Time Spent per Category")
 
-    if sum(values) > 0:
-        ax2.pie(values, labels=categories, autopct="%1.1f%%", startangle=90,
-                colors=["#007bff", "#28a745", "#ffc107"])
-        ax2.set_title("Workout Distribution")
+    # pie only if data exists
+    if sum(values_nonzero) > 0:
+        ax2.pie(values_nonzero, labels=categories_nonzero)
+    else:
+        ax2.text(0.5, 0.5, "No data yet", ha="center", va="center")
+        ax2.axis("off")
 
-    plt.tight_layout()
-    chart_path = os.path.join(CHART_DIR, "progress.png")
-    plt.savefig(chart_path)
+    os.makedirs(CHART_DIR, exist_ok=True)
+    plt.savefig(os.path.join(CHART_DIR, "progress.png"))
     plt.close(fig)
-
-
-
 
 if __name__ == "__main__":
     app.run(debug=True)

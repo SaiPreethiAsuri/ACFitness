@@ -1,21 +1,14 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block content %}
-<h2>Workout Summary</h2>
+<h2>📈 Personal Progress Tracker</h2>
 
 {% if total_time == 0 %}
-<p>No sessions logged yet!</p>
+<p class="motivation">No workout data logged yet. Log your first session!</p>
 {% else %}
-{% for cat, sessions in workouts.items() %}
-<h3>{{ cat }}</h3>
-<ul>
-    {% for entry in sessions %}
-        <li>{{ entry.exercise }} - {{ entry.duration }} min ({{ entry.timestamp }})</li>
-    {% endfor %}
-</ul>
-{% endfor %}
-<p><strong>Total Time:</strong> {{ total_time }} minutes</p>
 <p class="motivation">{{ motivation }}</p>
-
-<img src="{{ url_for('static', filename='charts/progress.png') }}" alt="Progress Chart">
+<div class="chart-container">
+  <img src="data:image/png;base64,{{ plot_url }}" alt="Progress Chart">
+</div>
 {% endif %}
+
 {% endblock %}

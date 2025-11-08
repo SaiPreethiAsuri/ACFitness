@@ -1,13 +1,27 @@
-{% extends "layout.html" %}
+{% extends "base.html" %}
 {% block content %}
-<h2>Diet Chart</h2>
+<h2>🥗 Best Diet Guide for Fitness Goals</h2>
 
-{% for goal, foods in diet_plans.items() %}
-<h3>{{ goal }} Plan</h3>
-<ul>
-    {% for food in foods %}
-        <li>{{ food }}</li>
-    {% endfor %}
-</ul>
-{% endfor %}
+<div class="summary-card">
+  <h3>🎯 Weight Loss</h3>
+  <ul>
+    <li>Breakfast: Oatmeal with Berries</li>
+    <li>Lunch: Grilled Chicken/Tofu Salad</li>
+    <li>Dinner: Vegetable Soup with Lentils</li>
+  </ul>
+
+  <h3>💪 Muscle Gain</h3>
+  <ul>
+    <li>Breakfast: 3 Egg Omelet, Spinach, Toast</li>
+    <li>Lunch: Chicken Breast, Quinoa, Veggies</li>
+    <li>Post-Workout: Protein Shake, Yogurt</li>
+  </ul>
+
+  <h3>🏃 Endurance Focus</h3>
+  <ul>
+    <li>Pre-Workout: Banana & Peanut Butter</li>
+    <li>Lunch: Whole Grain Pasta</li>
+    <li>Dinner: Salmon & Avocado Salad</li>
+  </ul>
+</div>
 {% endblock %}

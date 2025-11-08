@@ -1,0 +1,14 @@
+<!-- templates/progress.html -->
+{% extends "base.html" %}
+{% block content %}
+  <h2>Your Progress</h2>
+
+  {% if total_time == 0 %}
+    <p>No workouts logged yet! Start your journey today 💪</p>
+  {% else %}
+    <p>Total workout time: <strong>{{ total_time }}</strong> minutes</p>
+    <p>Keep up the great work! 🌟</p>
+
+    <img src="{{ url_for('static', filename='charts/progress.png') }}" alt="Progress Chart">
+  {% endif %}
+{% endblock %}
