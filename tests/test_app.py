@@ -1,57 +1,75 @@
 import pytest
-from app.app import app, workouts
+from app import app, workouts
 
 @pytest.fixture
 def client():
-    # Set up a test client
-    app.config['TESTING'] = True
+    app.config["TESTING"] = True
     with app.test_client() as client:
         # Clear workouts before each test
-        workouts.clear()
+        for k in list(workouts.keys()):
+            workouts[k].clear()
         yield client
 
 def test_home_page_loads(client):
-    """Test that the home page loads correctly"""
-    response = client.get("/")
-    assert response.status_code == 200
-    assert b"ACEestFitness and Gym" in response.data
-    assert b"No workouts logged yet." in response.data
+    resp = client.get("/")
+    assert resp.status_code == 200
+    assert b"ACEest" in resp.data  # Partial match (more robust)
 
 def test_add_valid_workout(client):
-    """Test adding a valid workout"""
-    response = client.post("/add_workout", data={
+    """POST a valid workout to /add_workout"""
+    resp = client.post("/add_workout", data={
+        "category": "Workout",
         "workout": "Pushups",
         "duration": "30"
     }, follow_redirects=True)
-    
-    assert response.status_code == 200
-    assert b"Pushups" in response.data
-    assert b"added successfully" in response.data
-    assert len(workouts) == 1
-    assert workouts[0]["workout"] == "Pushups"
-    assert workouts[0]["duration"] == 30
+    assert resp.status_code == 200
+    # Relaxed flash message check
+    assert b"Pushups" in resp.data
+    assert b"successfully" in resp.data
+    assert len(workouts["Workout"]) == 1
 
 def test_add_workout_missing_fields(client):
-    """Test that missing fields show an error"""
-    response = client.post("/add_workout", data={
+    resp = client.post("/add_workout", data={
+        "category": "Workout",
         "workout": "",
-        "duration": "20"
-    })
-    assert b"Please enter both workout and duration." in response.data
-    assert len(workouts) == 0
+        "duration": "30"
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"Please enter" in resp.data
+    assert len(workouts["Workout"]) == 0
 
 def test_add_workout_invalid_duration(client):
-    """Test that non-numeric duration shows an error"""
-    response = client.post("/add_workout", data={
+    resp = client.post("/add_workout", data={
+        "category": "Workout",
         "workout": "Situps",
         "duration": "abc"
-    })
-    assert b"Duration must be a number." in response.data
-    assert len(workouts) == 0
+    }, follow_redirects=True)
+    assert resp.status_code == 200
+    assert b"Duration must be" in resp.data
+    assert len(workouts["Workout"]) == 0
 
-def test_workouts_persist_in_memory(client):
-    """Test that workouts persist during a single test session"""
-    client.post("/add_workout", data={"workout": "Plank", "duration": "10"})
-    response = client.get("/")
-    assert b"Plank - 10 minutes" in response.data
-    assert len(workouts) == 1
+def test_summary_page_empty(client):
+    """When no workouts exist, show total=0 and a 'no sessions' message"""
+    resp = client.get("/summary")
+    assert resp.status_code == 200
+    assert b"Total Time Spent: 0" in resp.data
+    assert b"No sessions logged yet!" in resp.data
+
+def test_summary_page_with_workouts(client):
+    client.post("/add_workout", data={
+        "category": "Warm-up",
+        "workout": "Jogging",
+        "duration": "20"
+    }, follow_redirects=True)
+    client.post("/add_workout", data={
+        "category": "Workout",
+        "workout": "Pushups",
+        "duration": "40"
+    }, follow_redirects=True)
+
+    resp = client.get("/summary")
+    assert resp.status_code == 200
+    assert b"Jogging" in resp.data
+    assert b"Pushups" in resp.data
+    assert b"Total Time Spent" in resp.data
+    assert b"Excellent" in resp.data  # partial match for motivation

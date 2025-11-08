@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Workout Summary</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h1>🏋️ Session Summary</h1>
+
+    {% for category, sessions in workouts.items() %}
+      <h2 class="category">{{ category }}</h2>
+      {% if sessions %}
+        <ul>
+          {% for entry in sessions %}
+            <li>{{ loop.index }}. {{ entry.exercise }} - {{ entry.duration }} min <small>({{ entry.timestamp }})</small></li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">No sessions recorded.</p>
+      {% endif %}
+    {% endfor %}
+
+    <h3>Total Time Spent: {{ total_time }} minutes</h3>
+    <p class="motivation">{{ motivation }}</p>
+
+    <form action="{{ url_for('home') }}">
+      <button type="submit">Add More Workouts</button>
+    </form>
+  </div>
+</body>
+</html>
