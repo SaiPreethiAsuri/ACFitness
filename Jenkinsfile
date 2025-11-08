@@ -43,21 +43,26 @@ pipeline {
     }
 }
 
-        stage('Set Docker Tag') {
+       stage('Set Docker Tag') {
     steps {
         script {
+
+            // Clean way to extract only the tag without polluting output
             def result = bat(
-                script: 'git describe --tags --abbrev=0 2>nul',
+                script: '''
+                    @echo off
+                    for /f "usebackq delims=" %%i in (`git describe --tags --abbrev=0 2^>nul`) do echo %%i
+                ''',
                 returnStdout: true
             ).trim()
 
-            if (result && result != '') {
-                env.IMAGE_TAG = result
-            } else {
+            if (result == null || result.trim() == "") {
                 env.IMAGE_TAG = "latest"
+            } else {
+                env.IMAGE_TAG = result.trim()
             }
 
-            echo "Docker tag set to: ${env.IMAGE_TAG}"
+            echo "✅ Docker tag extracted: ${env.IMAGE_TAG}"
         }
     }
 }
