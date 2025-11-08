@@ -44,20 +44,24 @@ pipeline {
 }
 
         stage('Set Docker Tag') {
-            steps {
-                script {
-                    def gitTagResult = bat(script: 'git describe --tags --abbrev=0', returnStatus: true)
+    steps {
+        script {
+            def result = bat(
+                script: 'git describe --tags --abbrev=0 2>nul',
+                returnStdout: true
+            ).trim()
 
-                    if (gitTagResult == 0) {
-                        env.IMAGE_TAG = bat(script: 'git describe --tags --abbrev=0', returnStdout: true).trim()
-                    } else {
-                        env.IMAGE_TAG = 'latest'
-                    }
-
-                    echo "Docker tag set to: ${env.IMAGE_TAG}"
-                }
+            if (result && result != '') {
+                env.IMAGE_TAG = result
+            } else {
+                env.IMAGE_TAG = "latest"
             }
+
+            echo "Docker tag set to: ${env.IMAGE_TAG}"
         }
+    }
+}
+
 
         stage('Build & Push Docker Image') {
             environment {
