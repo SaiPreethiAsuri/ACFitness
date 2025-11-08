@@ -45,24 +45,21 @@ pipeline {
 stage('Set Docker Tag') {
     steps {
         script {
-
-            def result = bat(
-                script: 'powershell -Command "(git describe --tags --abbrev=0 2>$null)"',
+            def tag = powershell(
+                script: 'git describe --tags --abbrev=0 2>$null',
                 returnStdout: true
             ).trim()
 
-            echo "🔍 RAW TAG OUTPUT = '${result}'"
-
-            if (!result || result.trim() == "" || result.contains("fatal")) {
-                env.IMAGE_TAG = "latest"
-                echo "⚠️ No valid tag found. Using latest."
-            } else {
-                env.IMAGE_TAG = result
-                echo "✅ Final Docker Tag: ${env.IMAGE_TAG}"
+            if (!tag || tag == "") {
+                tag = "latest"
             }
+
+            env.IMAGE_TAG = tag
+            echo "✅ Using Docker Tag: ${env.IMAGE_TAG}"
         }
     }
 }
+
 
 
 
