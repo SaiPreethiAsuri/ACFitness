@@ -45,18 +45,22 @@ pipeline {
 stage('Set Docker Tag') {
     steps {
         script {
+
             bat 'git fetch --all --tags'
 
+            // Run tag fetch in PowerShell
             def raw = bat(
-                script: 'powershell -NoProfile -Command "(git tag --sort=-creatordate | Select-Object -First 1)"',
+                script: 'powershell -NoProfile -Command "git tag --sort=-creatordate | Select-Object -Last 1"',
                 returnStdout: true
             )
 
-            // CLEAN the result
-            def clean = raw.trim()                  // remove whitespace
-                           .split("\\r?\\n")[0]     // take ONLY first line
-                           .replaceAll("[^0-9A-Za-z._-]", "") // remove garbage
+            // CLEAN: keep only the last non-empty line
+            def clean = raw.readLines()
+                           .findAll { it.trim() }          // remove empty lines
+                           .last()                         // take the last clean line
+                           .trim()                         // trim spaces
 
+            // Ensure valid fallback
             if (!clean) clean = "latest"
 
             env.IMAGE_TAG = clean
@@ -64,6 +68,7 @@ stage('Set Docker Tag') {
         }
     }
 }
+
 
 
 
