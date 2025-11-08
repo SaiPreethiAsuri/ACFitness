@@ -1,22 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: acfitness-app
-  labels:
-    app: acfitness-app
+  name: acfitness-app-shadow
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: acfitness-app
+      version: shadow
   template:
     metadata:
       labels:
         app: acfitness-app
+        version: shadow
     spec:
       containers:
         - name: acfitness-app
-          image: acfitness-app:deployment # Use this in local deployment
+          image: fitness-app:latest
+          imagePullPolicy: Never
           # image: your_dockerhub_username/acfitness-app:${IMAGE_TAG}
           ports:
             - containerPort: 5000

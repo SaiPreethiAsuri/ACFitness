@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acfitness-app-stable
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: acfitness-app
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: acfitness-app
+        version: stable
+    spec:
+      containers:
+        - name: acfitness-app
+          image: fitness-app:latest
+          imagePullPolicy: Never
+          # image: your_dockerhub_username/acfitness-app:${IMAGE_TAG}
+          ports:
+            - containerPort: 5000
+          env:
+            - name: FLASK_ENV
+              value: "production"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: acfitness-app-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: acfitness-app
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: acfitness-app
+        version: canary
+    spec:
+      containers:
+        - name: acfitness-app
+          image: fitness-app:latest
+          imagePullPolicy: Never
+          # image: your_dockerhub_username/acfitness-app:canary
+          ports:
+            - containerPort: 5000
+          env:
+            - name: FLASK_ENV
+              value: "production"
