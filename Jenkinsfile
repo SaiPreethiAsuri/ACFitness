@@ -47,30 +47,21 @@ pipeline {
     steps {
         script {
 
-            echo "🔍 DEBUG: Running git tag detection..."
-
-            def tagOutput = bat(
-                script: '''
-                    @echo off
-                    echo ----GIT TAG DEBUG START----
-                    git describe --tags --abbrev=0 2>&1
-                    echo ----GIT TAG DEBUG END----
-                    for /f "usebackq delims=" %%i in (`git describe --tags --abbrev=0 2^>nul`) do echo %%i
-                ''',
+            // Use a SINGLE-LINE BAT for compatibility with Jenkins Windows agents
+            def result = bat(
+                script: '@echo off && for /f "delims=" %i in (\'git describe --tags --abbrev=0 2^>nul\') do @echo %i',
                 returnStdout: true
             ).trim()
 
-            echo "🔍 RAW TAG OUTPUT = '${tagOutput}'"
+            echo "🔍 RAW TAG OUTPUT = '${result}'"
 
-            if (!tagOutput || tagOutput.trim() == "" || tagOutput.contains("fatal")) {
-                echo "⚠️ No tag found. Using latest"
+            if (!result || result.trim() == "" || result.contains("fatal")) {
                 env.IMAGE_TAG = "latest"
+                echo "⚠️ No valid tag found. Using latest."
             } else {
-                // Extract only the LAST line (the actual tag)
-                env.IMAGE_TAG = tagOutput.tokenize('\n').last().trim()
+                env.IMAGE_TAG = result
+                echo "✅ Final Docker Tag: ${env.IMAGE_TAG}"
             }
-
-            echo "✅ Final Docker Tag: ${env.IMAGE_TAG}"
         }
     }
 }
