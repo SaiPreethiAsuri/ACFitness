@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>📋 Workout Summary</h2>
+{% for category, sessions in workouts.items() %}
+  <h4>{{ category }}</h4>
+  {% if sessions %}
+    <ul>
+      {% for s in sessions %}
+        <li>{{ s.exercise }} - {{ s.duration }} min ({{ s.calories|round(1) }} kcal)</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>No sessions recorded.</p>
+  {% endif %}
+{% endfor %}
+{% endblock %}

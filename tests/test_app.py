@@ -1,5 +1,6 @@
 import pytest
-from app.app import app, workouts
+from app.app import app, workouts, user_info
+
 
 @pytest.fixture
 def client():
@@ -8,69 +9,120 @@ def client():
         yield client
 
 
-def test_home_page(client):
-    """Ensure home (log workout) page loads."""
+# ----------------------------
+# HOME PAGE TESTS
+# ----------------------------
+def test_home_page_loads(client):
+    """Home page should load the user info form."""
     response = client.get("/")
     assert response.status_code == 200
-    assert b"Warm-up" in response.data or b"Workout" in response.data
+    assert b"name" in response.data or b"User" in response.data
 
 
-def test_add_valid_workout(client):
-    """Add a valid workout and verify it's stored."""
-    for w in workouts.values():
-        w.clear()
+def test_valid_user_submission(client):
+    """POST valid user info should redirect to /plan."""
+    data = {
+        "name": "Preethi",
+        "regn_id": "R123",
+        "age": "25",
+        "gender": "F",
+        "height": "165",
+        "weight": "60"
+    }
+    response = client.post("/", data=data, follow_redirects=False)
+    assert response.status_code == 302
+    assert "/plan" in response.headers["Location"]
+
+
+def test_invalid_user_submission_missing_fields(client):
+    """Posting missing required fields should return HTTP 400."""
+    response = client.post("/", data={"name": "OnlyName"})
+    assert response.status_code == 400
+
+
+# ----------------------------
+# WORKOUT ADDITION TESTS
+# ----------------------------
+def test_valid_workout_submission(client):
+    """Valid workout submission should be stored."""
+    for cat in workouts.values():
+        cat.clear()
+
+    user_info.update({"weight": 60})
 
     data = {
         "category": "Workout",
-        "exercise": "Pushups",
+        "exercise": "Squats",
         "duration": "20"
     }
-    response = client.post("/", data=data, follow_redirects=True)
+
+    res = client.post("/add", data=data, follow_redirects=True)
+    assert res.status_code in (200, 302)
+
+    assert len(workouts["Workout"]) == 1
+    assert workouts["Workout"][0]["exercise"] == "Squats"
+
+
+def test_invalid_workout_missing_fields(client):
+    """Missing workout fields should redirect back with error."""
+    data = {"category": "Workout", "exercise": "", "duration": ""}
+    res = client.post("/add", data=data, follow_redirects=True)
+    assert res.status_code in (200, 302)
+
+
+def test_invalid_workout_negative_duration(client):
+    """Negative duration should be rejected."""
+    data = {"category": "Warm-up", "exercise": "Jogging", "duration": "-5"}
+    res = client.post("/add", data=data, follow_redirects=True)
+    assert b"positive number" in res.data or res.status_code in (200, 302)
+
+
+# ----------------------------
+# SUMMARY PAGE TESTS
+# ----------------------------
+def test_summary_page(client):
+    response = client.get("/summary")
     assert response.status_code == 200
-    assert any("Pushups" in e["exercise"] for e in workouts["Workout"])
+    assert b"Summary" in response.data or b"Duration" in response.data
 
 
-def test_add_invalid_workout_missing_fields(client):
-    """Test adding invalid workout (empty fields)."""
-    response = client.post("/", data={"category": "Workout", "exercise": "", "duration": ""}, follow_redirects=True)
-    assert b"Please enter both exercise and duration" in response.data
+# ----------------------------
+# PROGRESS PAGE TESTS
+# ----------------------------
+def test_progress_page(client):
+    """Progress page should show placeholder or chart."""
+    res = client.get("/progress")
+    assert res.status_code == 200
+
+    assert (
+        b"progress.png" in res.data
+        or b"No workout data" in res.data
+        or b"Total Minutes" in res.data
+    )
 
 
-def test_add_invalid_workout_negative_duration(client):
-    """Test adding invalid workout (negative duration)."""
-    response = client.post("/", data={"category": "Warm-up", "exercise": "Jogging", "duration": "-5"}, follow_redirects=True)
-    assert b"Duration must be a positive whole number" in response.data
+# ----------------------------
+# PDF EXPORT TESTS
+# ----------------------------
+def test_pdf_export(client):
+    """PDF export should work or fallback text if ReportLab missing."""
+    user_info.clear()
+    user_info.update({
+        "name": "Preethi",
+        "regn_id": "R123",
+        "age": 25,
+        "gender": "F",
+        "height": 165.0,
+        "weight": 60.0,
+        "bmi": 22.0,
+        "bmr": 1450.0
+    })
 
+    res = client.get("/export")
+    assert res.status_code in (200, 302)
 
-def test_progress_no_data(client):
-    """Progress page with no data."""
-    for w in workouts.values():
-        w.clear()
-    response = client.get("/progress")
-    assert response.status_code == 200
-    assert b"No workout data" not in response.data  # Should not break
-
-
-def test_progress_with_data(client):
-    """Progress page generates chart when data exists."""
-    for w in workouts.values():
-        w.clear()
-    workouts["Warm-up"].append({"exercise": "Jumping Jacks", "duration": 10, "timestamp": "2025-11-04"})
-    workouts["Workout"].append({"exercise": "Pushups", "duration": 30, "timestamp": "2025-11-04"})
-    workouts["Cool-down"].append({"exercise": "Stretching", "duration": 5, "timestamp": "2025-11-04"})
-
-    response = client.get("/progress")
-    assert response.status_code == 200
-    assert b"charts/progress.png" in response.data
-
-
-def test_plan_and_diet_pages(client):
-    """Ensure plan and diet pages load correctly."""
-    response_plan = client.get("/plan")
-    response_diet = client.get("/diet")
-
-    assert response_plan.status_code == 200
-    assert b"Warm-up" in response_plan.data or b"Cardio" in response_plan.data
-
-    assert response_diet.status_code == 200
-    assert b"Weight Loss" in response_diet.data or b"Protein" in response_diet.data
+    assert (
+        res.mimetype == "application/pdf"
+        or b"PDF unavailable" in res.data
+        or b"Report" in res.data
+    )

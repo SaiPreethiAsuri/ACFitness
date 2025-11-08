@@ -1,18 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>ACEest Fitness Tracker</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <h1>🏋️ ACEest Fitness & Gym Tracker</h1>
-  <nav>
-    <a href="{{ url_for('log_workout') }}">Log Workout</a> |
-    <a href="{{ url_for('summary') }}">Summary</a> |
-    <a href="{{ url_for('plan') }}">Workout Plan</a> |
-    <a href="{{ url_for('diet_guide') }}">Diet Guide</a> |
-    <a href="{{ url_for('progress') }}">Progress Tracker</a>
-  </nav>
-</body>
-</html>
+{% extends "base.html" %}
+{% block content %}
+<h2>🏋️ Welcome to Your Fitness Tracker</h2>
+<p>Track your workouts, diet, and progress here!</p>
+
+<form method="post">
+  <label>Name:</label><br>
+  <input type="text" name="name" required><br><br>
+  
+  <label>Registration ID:</label><br>
+  <input type="text" name="regn_id" required><br><br>
+
+  <label>Age:</label><br>
+  <input type="number" name="age" min="1" required><br><br>
+
+  <label>Gender:</label><br>
+  <input type="text" name="gender" required><br><br>
+
+  <label>Height (cm):</label><br>
+  <input type="number" name="height" required><br><br>
+
+  <label>Weight (kg):</label><br>
+  <input type="number" name="weight" required><br><br>
+
+  <button type="submit">Submit</button>
+</form>
+{% endblock %}
