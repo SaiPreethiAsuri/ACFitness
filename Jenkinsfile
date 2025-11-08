@@ -45,24 +45,26 @@ pipeline {
 stage('Set Docker Tag') {
     steps {
         script {
-            // Fetch tags
             bat 'git fetch --all --tags'
 
-            // Get the latest tag using proper PowerShell invocation
-            def result = bat(
-                script: 'powershell -NoProfile -Command "git tag --sort=-creatordate | Select-Object -First 1"',
+            def raw = bat(
+                script: 'powershell -NoProfile -Command "(git tag --sort=-creatordate | Select-Object -First 1)"',
                 returnStdout: true
-            ).trim()
+            )
 
-            if (result == null || result == "") {
-                result = "latest"
-            }
+            // CLEAN the result
+            def clean = raw.trim()                  // remove whitespace
+                           .split("\\r?\\n")[0]     // take ONLY first line
+                           .replaceAll("[^0-9A-Za-z._-]", "") // remove garbage
 
-            env.IMAGE_TAG = result
-            echo "✅ Docker tag will be: ${env.IMAGE_TAG}"
+            if (!clean) clean = "latest"
+
+            env.IMAGE_TAG = clean
+            echo "✅ FINAL TAG: '${env.IMAGE_TAG}'"
         }
     }
 }
+
 
 
 
