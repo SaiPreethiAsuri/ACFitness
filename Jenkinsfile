@@ -45,18 +45,25 @@ pipeline {
 stage('Set Docker Tag') {
     steps {
         script {
+            // Fetch tags
             bat 'git fetch --all --tags'
 
+            // Get the latest tag using proper PowerShell invocation
             def result = bat(
-                script: 'git tag --sort=-creatordate | Select-Object -First 1',
+                script: 'powershell -NoProfile -Command "git tag --sort=-creatordate | Select-Object -First 1"',
                 returnStdout: true
             ).trim()
 
-            env.IMAGE_TAG = result ?: 'latest'
-            echo "✅ Using Docker tag: ${env.IMAGE_TAG}"
+            if (result == null || result == "") {
+                result = "latest"
+            }
+
+            env.IMAGE_TAG = result
+            echo "✅ Docker tag will be: ${env.IMAGE_TAG}"
         }
     }
 }
+
 
 
 
