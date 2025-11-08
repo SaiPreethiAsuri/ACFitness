@@ -43,29 +43,38 @@ pipeline {
     }
 }
 
-       stage('Set Docker Tag') {
+      stage('Set Docker Tag') {
     steps {
         script {
 
-            // Clean way to extract only the tag without polluting output
-            def result = bat(
+            echo "🔍 DEBUG: Running git tag detection..."
+
+            def tagOutput = bat(
                 script: '''
                     @echo off
+                    echo ----GIT TAG DEBUG START----
+                    git describe --tags --abbrev=0 2>&1
+                    echo ----GIT TAG DEBUG END----
                     for /f "usebackq delims=" %%i in (`git describe --tags --abbrev=0 2^>nul`) do echo %%i
                 ''',
                 returnStdout: true
             ).trim()
 
-            if (result == null || result.trim() == "") {
+            echo "🔍 RAW TAG OUTPUT = '${tagOutput}'"
+
+            if (!tagOutput || tagOutput.trim() == "" || tagOutput.contains("fatal")) {
+                echo "⚠️ No tag found. Using latest"
                 env.IMAGE_TAG = "latest"
             } else {
-                env.IMAGE_TAG = result.trim()
+                // Extract only the LAST line (the actual tag)
+                env.IMAGE_TAG = tagOutput.tokenize('\n').last().trim()
             }
 
-            echo "✅ Docker tag extracted: ${env.IMAGE_TAG}"
+            echo "✅ Final Docker Tag: ${env.IMAGE_TAG}"
         }
     }
 }
+
 
 
         stage('Build & Push Docker Image') {
