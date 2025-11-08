@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💡 Personalized Workout Plan</h2>
+{% for category, exercises in plan.items() %}
+<h3>{{ category }}</h3>
+<ul>
+  {% for ex in exercises %}
+  <li>{{ ex }}</li>
+  {% endfor %}
+</ul>
+{% endfor %}
+{% endblock %}

@@ -1,14 +1,12 @@
-<!-- templates/progress.html -->
 {% extends "base.html" %}
 {% block content %}
-  <h2>Your Progress</h2>
-
-  {% if total_time == 0 %}
-    <p>No workouts logged yet! Start your journey today 💪</p>
-  {% else %}
-    <p>Total workout time: <strong>{{ total_time }}</strong> minutes</p>
-    <p>Keep up the great work! 🌟</p>
-
-    <img src="{{ url_for('static', filename='charts/progress.png') }}" alt="Progress Chart">
-  {% endif %}
+<h2>📈 Progress Tracker</h2>
+{% if total_minutes == 0 %}
+<p>No data yet. Log your first workout!</p>
+{% else %}
+<p><strong>Total Workout Time:</strong> {{ total_minutes }} minutes</p>
+{% if chart_file %}
+    <img src="{{ url_for('static', filename=chart_file) }}" alt="Progress Chart">
+{% endif %}
+{% endif %}
 {% endblock %}

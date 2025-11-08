@@ -2,23 +2,40 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ACEest Fitness & Gym Tracker</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <title>ACEest Fitness Tracker</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #F8F9FA; color: #333; text-align: center; margin: 0; }
+    header { background: #4CAF50; color: white; padding: 15px; }
+    nav a { color: white; margin: 0 15px; text-decoration: none; font-weight: bold; }
+    nav a:hover { text-decoration: underline; }
+    main { padding: 20px; }
+    .flash.success { color: green; }
+    .flash.error { color: red; }
+    footer { background: #333; color: white; padding: 10px; position: fixed; bottom: 0; width: 100%; }
+    table { border-collapse: collapse; margin: 20px auto; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
+  </style>
 </head>
 <body>
-  <header>🏋️ ACEest Fitness & Gym Tracker</header>
-
-  <nav>
-    <a href="{{ url_for('home') }}">🏠 Log Workouts</a>
-    <a href="{{ url_for('summary') }}">📈 Progress Tracker</a>
-    <a href="{{ url_for('diet_chart') }}">🥗 Diet Guide</a>
-    <a href="{{ url_for('progress') }}">📊 Charts</a>
-  </nav>
+  <header>
+    <h1>🏋️ ACEest Fitness & Gym Tracker</h1>
+    <nav>
+      <a href="{{ url_for('log_workout') }}">Log Workouts</a>
+      <a href="{{ url_for('workout_plan') }}">Workout Plan</a>
+      <a href="{{ url_for('diet_guide') }}">Diet Guide</a>
+      <a href="{{ url_for('progress') }}">Progress</a>
+    </nav>
+  </header>
 
   <main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <p class="flash {{ category }}">{{ message }}</p>
+      {% endfor %}
+    {% endwith %}
     {% block content %}{% endblock %}
   </main>
 
-  <footer>© 2025 ACEest Fitness Tracker | Stay Strong 💪</footer>
+  <footer>© 2025 ACEest Fitness Tracker | Stay Fit 💪</footer>
 </body>
 </html>

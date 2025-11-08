@@ -1,43 +1,18 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>🏋️ Log Your Workouts</h2>
-
-{% if error %}
-<p style="color:red;">{{ error }}</p>
-{% endif %}
-
-<form method="POST" action="{{ url_for('add_workout') }}">
-  <label>Category:</label>
-  <select name="category">
-    <option value="Warm-up">Warm-up</option>
-    <option value="Workout">Workout</option>
-    <option value="Cool-down">Cool-down</option>
-  </select>
-
-  <label>Exercise:</label>
-  <input type="text" name="exercise" required>
-
-  <label>Duration (minutes):</label>
-  <input type="number" name="duration" min="1" required>
-
-  <button type="submit">✅ Add Session</button>
-</form>
-
-<hr>
-
-<h3>Recent Logs</h3>
-{% for category, sessions in workouts.items() %}
-<div class="summary-card">
-  <div class="category-title">{{ category }}</div>
-  {% if sessions %}
-    <ul>
-      {% for entry in sessions %}
-        <li>{{ entry.exercise }} — {{ entry.duration }} min ({{ entry.timestamp.split(' ')[0] }})</li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>No sessions yet in this category.</p>
-  {% endif %}
-</div>
-{% endfor %}
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ACEest Fitness Tracker</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>🏋️ ACEest Fitness & Gym Tracker</h1>
+  <nav>
+    <a href="{{ url_for('log_workout') }}">Log Workout</a> |
+    <a href="{{ url_for('summary') }}">Summary</a> |
+    <a href="{{ url_for('plan') }}">Workout Plan</a> |
+    <a href="{{ url_for('diet_guide') }}">Diet Guide</a> |
+    <a href="{{ url_for('progress') }}">Progress Tracker</a>
+  </nav>
+</body>
+</html>
